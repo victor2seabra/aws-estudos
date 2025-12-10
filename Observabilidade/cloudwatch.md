@@ -32,7 +32,7 @@ Apesar de possuírem diversos tipos de visualização usando o CloudWatch Synthe
 
 Se integrado com SNS e CloudWatch Alarms podemos receber avisos e mensagens de ocorrências no ambiente
 
-![]("cloudwatch-images/Pasted-image-10.png")
+![](cloudwatch-images/Pasted-image-10.png)
 
 ### Inside-out
 Essa abordagem tem como **foco tratar da manutenção da disponibilidade de aplicações via escalonamento da infraestrutura**
@@ -41,7 +41,7 @@ Tomando como exemplo um e-commerce, podemos fazer com que mediante ao tráfego r
 
 Isso pode ser realizado via CloudWatch Metrics
 
-![]("cloudwatch-images/Pasted-image-11.png")
+![](cloudwatch-images/Pasted-image-11.png)
 
 ## CloudWatch Metrics 
 **São dados de variáveis que impactam a performance dos nossos sistemas e que podemos monitorar**
@@ -101,14 +101,14 @@ Podemos criar **Search Expressions dinâmicas** que agrupam automaticamente Metr
 
 **Podemos somente usar de Search Expressions em recursos que tem dados de monitoramento rastreados com pelo menos 2 semanas**
 
-![]("cloudwatch-images/Pasted-image-12.png")
+![](cloudwatch-images/Pasted-image-12.png)
 
 ### Annotations
 Horizontal Annotations permite identificar de forma rápida quando um valor da métrica foi atingido ou está dentro de um dado intervalo
 
 Vertical Annotations permite marcar metas em um gráfico
 
-![]("cloudwatch-images/Pasted-image-13.png")
+![](cloudwatch-images/Pasted-image-13.png)
 
 ### Resolução dos data points de acordo com o tempo de coleta X Tempo de retenção
 Após a coleta dos data points eles são armazenados de acordo com o intervalo de coleta desses dados eles são agregados para otimizar o armazenamento, mas isso acarreta numa perda de precisão dos dados
@@ -162,7 +162,7 @@ O uso de CloudWatch Synthetics gera a produção de arquivos HAR (HTTP Archive) 
 
 **O Canary opera usando Lambda** como serviço de execução de suas funções
 
-![]("cloudwatch-images/Pasted-image-14.png")
+![](cloudwatch-images/Pasted-image-14.png)
 
 ## CloudWatch RUM (Real Users Monitoring)
 Juntos dos dados provenientes do CloudWatch Synthetics podemos ter uma visão geral da aplicação
@@ -171,7 +171,7 @@ Juntos dos dados provenientes do CloudWatch Synthetics podemos ter uma visão ge
 
 Podemos analisar o uso e impacto do uso em nossa aplicação de modo visual permitindo observar a **localidade, navegador, dispositivos, latências e updates da aplicação**, por exemplo
 
-![]("cloudwatch-images/Pasted-image-15.png")
+![](cloudwatch-images/Pasted-image-15.png)
 
 Com o uso do RUM podemos ter acesso a **mensagens de erros, dados de sessão dos usuários e traces do X-Ray** permitindo a otimização da aplicação
 
@@ -181,11 +181,11 @@ Com o uso do RUM podemos ter acesso a **mensagens de erros, dados de sessão dos
 
 Funcionamento:
 
-![]("cloudwatch-images/Pasted-image-16.png")
+![](cloudwatch-images/Pasted-image-16.png)
 
-![]("cloudwatch-images/Pasted-image-17.png")
+![](cloudwatch-images/Pasted-image-17.png)
 
-![]("cloudwatch-images/Pasted-image-18.png")
+![](cloudwatch-images/Pasted-image-18.png)
 
 ## CloudWatch Container Insights
 É um recurso do Amazon CloudWatch que **monitora a saúde, o desempenho e a utilização de contêineres**
@@ -198,7 +198,7 @@ Console do Container Insights se trata de uma visualização especializada no co
 
 Funcionamento
 
-![]("cloudwatch-images/Pasted-image-19.png")
+![](cloudwatch-images/Pasted-image-19.png)
 
 ## CloudWatch Agent
 Permite coletar dados de logs de modo individual ou em grupos de arquivos
@@ -207,7 +207,7 @@ Após a coleta, os logs são enviados a um log stream que usam do ID do recurso 
 
 Exemplo de uso em EC2:
 
-![]("cloudwatch-images/Pasted-image-20.png")
+![](cloudwatch-images/Pasted-image-20.png)
 
 Exemplo de uso em containers:
 
@@ -216,7 +216,7 @@ Exemplo de uso em containers:
 + EKS:
     + Devemos configurar e fazer o deploy de um CloudWatch Agent como um daemon set
  
-![]("cloudwatch-images/Pasted-image-21.png")
+![](cloudwatch-images/Pasted-image-21.png)
 
 ## CloudWatch Contributor Insights
 Nos fornece informações de quem ou o que esta impactando nosso sistema com base em Logs destacando outliers, detectando grandes padrões de tráfego e rankeando processos dos sistemas em função do tempo e em tempo real 
@@ -229,7 +229,7 @@ Regras especificam quais campos dos logs devem ser usados para criar Contributor
 
 As operações matemáticas permitidas são count e sum apenas
 
-![]("cloudwatch-images/Pasted-image-22.png")
+![](cloudwatch-images/Pasted-image-22.png)
 
 ## CloudWatch Log Anomalies
 Podemos criar detectores de anomalias no ambiente usando esta ferramenta
