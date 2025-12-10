@@ -220,10 +220,6 @@ Com o uso do RUM podemos ter acesso a **mensagens de erros, dados de sessão dos
 
 **Para realizarmos a agregação dos dados é necessário habilitarmos cookies**
 
-Usos comuns do RUM:
-
-![image.png](attachment:2f93d961-b731-4075-93f3-caad7b921576.png)
-
 Funcionamento:
 
 ![]("images/Pasted-image-16.png")
