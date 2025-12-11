@@ -3,7 +3,7 @@ Um serviço de monitoramento, observabilidade, governança e otimização
 
 Podemos usar o CloudWatch para monitorar aplicações na AWS, hospedadas de modo híbrido, em outras clouds ou ainda on-premise
 
-Com o CloudWatch junto de outros serviços como Lambda e EventBridge, podemos automatizar respostas à mudanças operacionais
+Com o CloudWatch junto de outros serviços como Lambda e EventBridge, **podemos automatizar respostas à mudanças operacionais**
 
 Podemos com o CloudWatch atuar usando as seguintes features:
     
@@ -51,6 +51,8 @@ São definidas por:
 + Namespace
 + Dimensão
 
+**Data points são registros captados e agregados que serão armazenados para compor métricas em sua estrutura, permitindo gráficos em função do tempo**
+
 Cada métrica possui um identificador único (Nome) e cada data point possui:
 + Um registro de time stamp
 + Unidade de medida (opcional)
@@ -60,8 +62,6 @@ Alguns serviços possuem métricas gratuitas e pré-definidas mas podemos criar 
 Com o uso de métricas podemos gerar gráficos de monitoramento
 
 **Nos oferecem uma forma ordenada em relação ao tempo de como os dados (data points) estão distribuídos**
-
-**Data points são registros captados e agregados que serão armazenados para compor métricas em sua estrutura, permitindo gráficos em função do tempo**
 
 Métricas passíveis de serem coletadas podem ter data points com menos de 1 segundo de resolução. **O tempo de resolução impacta diretamente na retenção dos data points coletados**
 
@@ -219,7 +219,7 @@ Exemplo de uso em containers:
 ![](cloudwatch-images/Pasted-image-21.png)
 
 ## CloudWatch Contributor Insights
-Nos fornece informações de quem ou o que esta impactando nosso sistema com base em Logs destacando outliers, detectando grandes padrões de tráfego e rankeando processos dos sistemas em função do tempo e em tempo real 
+**Nos fornece informações de quem ou o que esta impactando nosso sistema com base em Logs** destacando outliers, detectando grandes padrões de tráfego e rankeando processos dos sistemas **em função do tempo e em tempo real **
 
 **Um Contributor se trata de um combinação de campos definidos por uma regra**
 
@@ -234,9 +234,44 @@ As operações matemáticas permitidas são count e sum apenas
 ## CloudWatch Log Anomalies
 Podemos criar detectores de anomalias no ambiente usando esta ferramenta
 
-Ela se enquadra no free-tier se a classe dos Logs usados forem Standard
+**Ela se enquadra no free-tier se a classe dos Logs usados forem Standard**
 
 Há em sua configuração um codigo de ML que é treinado com base em nossos Logs no periodo de 2 semanas para entender o comportamento do ambiente e a partir disso detectar anomalias
 
 ## CloudWatch Dashboards
 Nos permite a criação unificada de registros de métricas e gráficos do comportamento do ambiente
+
+## CloudWatch Alarms
+Podemos configurar alarmes para nos avisarem de situações indesejadas como por exemplo um aumento no numero de objetos no S3 ou aumento do consumo de recursos computacionais de uma instancia EC2 
+
+**Podemos definir um comportamento de Autoscaling quando configurado Alarms desse modo, ele redimensiona recursos para nós**
+
+Outra forma de lidar com anomalias é atrelando o Amazon EventBridge como target do Alarm, dessa forma uma Lambda, por exemplo, pode performar sua operação
+
+Dois são os tipos de Alarms disponiveis:
++ Metric Alarms 
+    + Realiza o acompanhamento de uma única CloudWatch Metric e performa uma ou mais ações baseado em seu valor ou expressão matemática relativa ao seu limiar
+    + Podemos performar as seguintes operações:
+        + Envio de notificação a um SNS Topic
+        + Operar sobre uma instância EC2
+        + Criar um incidente no AWS System Manager
+        + Inicializar uma automação de documentação no AWS System Manager
+        + Invocar uma AWS Lambda para remediar o problema 
++ Composite Alarm 
+    + Este tipo de alarme pode ser definido com base numa Rule Expression que considera o estado de mais de um CloudWatch Alarm 
+    + **Só performam a operação definida neles se todas as condições se concretizarem**
+    + **Seu uso é recomendado para evitar excessos de Alarms que podem gerar ruídos**
+
+Status possíveis de CloudWatch Alarms:
++ INSUFFICIENT DATA (cinza) 
++ OK (sem cor)
++ ALARM (vermelho)
+
+### Definindo um CloudWatch Alarm 
+1. Intervalo de tempo (Period) 
+    + Intervalo de tempo para a criação de cada data point no Alarm computados pela métrica ou Rule Expression, isto é, intervalo de tempo que o Alarm irá olhar para a métrica e computar data points
+    + Unidade de medida: segundos
+2. Intervalo de avaliação
+    + Quantidade de data points a serem avaliados que definirão o status do Alarm
+3. Limiar de data points 
+    + Quantidade de data points que podem exceder o limiar definido para alterar o estado do Alarm
