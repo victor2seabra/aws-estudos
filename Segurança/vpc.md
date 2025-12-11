@@ -130,7 +130,13 @@ Atua como um roteador virtual regional para o trafego entre quem o possui atrela
 ![](vpc-images/Pasted-image-2.png)
 
 ### VPC Flow Logs
-Realiza o registro de trafego de IPs entre interfaces de rede do nosso VPC 
+Realiza o registro de trafego de IPs entre interfaces de rede do nosso VPC
+
+Podemos nos beneficiar de seu uso para rastrearmos o tráfego e seu direcionamento
+
+Podemos atrelar seus log ao CloudWatch permitindo usar de suas features para monitorar o VPC
+
+![](vpc-images/Pasted-image-5.png)
 
 ### VPC Connections
 **Permite a conexão com redes on-premise** usando o AWS Virtual Private Network (AWS VPN)
