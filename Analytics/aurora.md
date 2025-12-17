@@ -26,7 +26,7 @@ Se responsabiliza por:
 + Plataformas de e-commerce
 + Sistemas de gerenciamento de conteúdo
 
-Possui uma engine de armazenamento de logs estruturados que aumenta sua performance se comparado a engines tradicionais de databases
+**Possui uma engine de armazenamento de logs estruturados que aumenta sua performance** se comparado a engines tradicionais de databases
 
 ## Benefícios de Uso 
 + Elimina a necessidade de gerenciarmos a infraestrutura do database 
@@ -35,12 +35,12 @@ Possui uma engine de armazenamento de logs estruturados que aumenta sua performa
 + Seu log estruturado faz com que tenhamos um alto throughput e baixa latência 
 
 ## Características
-+ Até 15 replicas de leitura por cluster com baixa latência
++ **Até 15 replicas de leitura por cluster** com baixa latência
 + Armazenamento escala de modo automático de 10 GB ate 128 TB
 + Se recupera sozinho de falhas de hardware
 + Dados são criptografados no tráfego e no rest se integrado com AWS KMS
 + Fornece a API do Amazon RDS para uma interface segura
-+ Não possui integração com ETL, se integrarmos com o Amazon Redshift podemos performar ETL sem a necesidade de um pipeline complexo e tradicional em NRT
++ Se integrarmos com o Amazon Redshift podemos operar OLAP em NRT
 + Realiza backups com point-in-time
 + Possiblita clonar a database de forma rápida
 + Se usado MySQL podemos realizar backtracking
@@ -55,44 +55,66 @@ Fatores que influenciam:
 + Quantidade de operações I/O que são performadas
 
 ## Conceitos
-### Aurora DB cluster
+### Aurora DB Cluster
 É a principal unidade de arquitetura do Aurora 
 
 Composto de:
 
 #### Primary (Writer) Instance
-Lida com todas as operações de escrita e lê requests feitos ao cluster do database 
+Lida com todas as **operações de escrita e lê requests** feitos ao cluster do database 
 
-Podemos ter somente um por cluster
+Podemos ter somente **um por cluster**
+
+As instancias de escrita (Primary Instances) atuam escrevendo Logs estruturados no armazenamento no modelo Write-Ahead Log (WAL)
 
 #### Secondary (Reader) Instance
-Performa operações de leitura de modo escalável
+Performa **operações de leitura** de modo escalável
 
-Podemos ter até 15 replicads dessa instância para otimizar a performance
+Cada leitura realiza a operação sobre uma página (page) sob demanda que é materializada no background do Amazon Aurora
+
+Podemos ter **até 15 replicas** dessa instância para otimizar a performance
 
 #### Cluster Volume
-Se trata do armazenamento virtual da databases
-
-Há manutenção contínua do seu armazenamento no Amazon S3
+Se trata do **armazenamento virtual** da databases
 
 ![](aurora-images/Pasted-image-2.png)
 
 Pode ser expandido para varias AZ, cada um contendo uma copia dos dados do cluster do database 
 
+O armazenamento é segmentado em **Nodes de armazenamento**, cada um com um **SSD de 10 GB atrelado a ele**
+
+Há manutenção contínua do seu armazenamento no Amazon S3 via backup
+
+Analisando de modo mais granular podemos observar a seguinte estrutura de armazenamento:
+
+![](amazon-aurora/Pasted-image-4.png)
+
+Podemos observar que cada segmento de dado armazenado **possui replicas em AZ + 1 diferentes** protegendo contra falhas
+
+Cada bloco colorido representa um **Protection Group (PG) que atua replicando os dados em diferentes AZ**. No caso acima temos 6 Nodes de armazenamento para cada PG totalizando 60 GB
+
+**O volume de armazenamento se expande e comprime de modo automatico podendo chegar a 128 TB**
+
+Realiza o backup de modo contínuo, e sem afetar a performance, dos WAL e pages
+
+Podemos ter no máximo 6 cópias de dados para aumentar a durabilidade
+
 ### Endpoints
 Se tratam de pontos de conexão de nosso cluster 
 
 #### Cluster Endpoint 
-Permite a conexão com a Primary Instance para performar operações de leitura e escrita 
+Permite a **conexão com a Primary Instance** para performar operações de leitura e escrita 
 
 #### Reader Endpoint 
-Realiza operações de Load Balancer de modo a gerenciar o tráfego de requests entre as Secondary Instances
+**Realiza operações de Load Balancer de modo a gerenciar o tráfego de requests entre as Secondary Instances**
 
 #### Instance Endpoint
-Permite a conexão em uma instancia de database específica
+**Permite a conexão em uma instancia de database específica**
 
 #### Custom Endpoint
 Uma forma de customizarmos a conexão com um grupo seleto de instancias
+
+Podemos dar acesso a um grupo de pessoas específicas para performar operações de I/O, por exemplo, num endpoint dedicado a somente elas
 
 #### Aurora Global Database Endpoint
 Realiza a conexão, em situações de deploy global, à Primary Instance
@@ -110,7 +132,7 @@ Permite que uma única database possa ser replicada em múltipĺas regiões torn
 
 ## Levar em Conta ao Implementar
 ### Segurança e Gerenciamento
-Faz uso de VPC para trafegar os dados via rede 
+Fazer uso de VPC para trafegar os dados via rede 
 
 Podemos integrar com IAM para termos controle granular de acessos
 
@@ -140,3 +162,38 @@ Podemos fazer upload de métricas e auditar seus logs
 
 ### Amazon Sagemaker, Amazon Comprehend e Amazon Bedrock
 Podemos fazer inferencia nesses serviços diretamente dos dados armazenados no database
+
+## Arquitetura
+No geral, **databases consistem em uma série de operações de I/O**
+
+Antes do desenvolvimento de databases como Amazon Aurora o design era realizado pensando somente em:
++ Aumento de bandwidth de I/O
++ Redução do consumo de operações de I/O
+
+Essa arquitetura pode ser esquematizada da seguinte maneira
+
+![](aurora-images/Pasted-image-3.png)
+
+A arquitetura utilizada anteriormente apresentava limitações como:
++ Escalabilidade 
++ Flexibilidade
+
+Com Amazon Aurora temos a seguinte arquitetura
+
+![](aurora-images/Pasted-image-5.png)
+
+Nela temos **armazenamento desacoplado do database com o intuito de prover maior escalabilidade, disponibilidade e durabilidade**
+
+Como destacado anteriormente podemos ter 15 instancias de leitura e 1 de escrita em nosso cluster, totalizando 16 instancias operando de modo distribuído
+
+O volume de armazenamento é compartilhado com todas as instancias de leitura
+
+**Os dados armazenados no Amazon Aurora são estruturados em WAL (Write-Ahead Logs)** fazendo com que os dados não sejam armazenados em blocos inteiros ou páginas de dados como em databases tradicionais
+
+Os WALs são constantemente transmitidos via streaming para:
++ Nodes de armazenamento usando paralelismo 
++ Secondary Instance pelo Primary Instance permitindo o uso de cache, denominado de Page Cache Update
+
+Os WALs passados para os Secondary Instances são usados para buffer pool e updates de leitura de views
+
+![](aurora-images/Pasted-image-6.png)
