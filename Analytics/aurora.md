@@ -101,6 +101,8 @@ Cada bloco colorido representa um **Protection Group (PG) que atua replicando os
 
 **O volume de armazenamento se expande e comprime de modo automatico podendo chegar a 128 TB**
 
+**A compressão do volume de armazenamento ocorre somente em operações de DROP ou TRUNCATE**
+
 Realiza o backup de modo contínuo, e sem afetar a performance, dos WAL e pages
 
 Podemos ter no máximo 6 cópias de dados para aumentar a durabilidade
@@ -108,6 +110,16 @@ Podemos ter no máximo 6 cópias de dados para aumentar a durabilidade
 Podemos criar clones dos nossos databases para, por exemplo, testes
 
 O processo de **copy-on-write** somente ocorre em situações em que os Cluster Volumes originais e clones diferem entre si, **em situações como essa o armazenamento é cobrado**
+
+Quando realizado o clone de um database o Cluster Volume dele se inica vazio, quando performado consultas nesse novo database clonado, seus dados retornados apontam para o Cluster Volume original
+
+**Quando feito uma operação de UPDATE no clone aí sim ocorre o copy-on-write**, copiando o dado do Cluster Volume original e o armazenando modificado no novo Cluster Volume
+
+![](aurora-images/Pasted-image-8.png)
+
+Quando realizado alterações no Primary Storage, os dados serão também copiados para o Cluster Volume clonado
+
+![](aurora-images/Pasted-image-9.png)
 
 **Amazon Aurora realiza a criação de snapshots e reorganiza a database**
 
@@ -215,3 +227,42 @@ Os WALs passados para os Secondary Instances são usados para buffer pool e upda
 ![](aurora-images/Pasted-image-6.png)
 
 ![](aurora-images/Pasted-image-7.png)
+
+# Amazon Aurora Global Database
+Permite a criação de vários databases em diferentes regiões, aumentando a sua disponibilidade e reduzindo latência em consultas
+
+Em uma região reside a Primary Instance e nas demais temos a distribuição de Secondary Instances que atuam consumindo seus dados em modo de leitura
+
+Torna a database mais resiliente ainda à quebras e falhas
+
+![](aurora-images/Pasted-image-10.png)
+
+![](aurora-images/Pasted-image-11.png)
+
+O uso de **switchover-global-cluster** permite converter uma Secondary Database a uma Primary Database
+
+**No switchover-global-cluster todas as operações de escrita são pausadas momentaneamente para garantir consistencia dos dados**
+
+O uso de **failover-global-cluster --allow-data-loss** permite converter uma Secondary Database a uma Primary Database em situações de falha/quebra
+
+Após a restauração do funcionamento normal do database em outra região um processo de sincronização é realizado garantindo que elas estejam a par uma com a outra
+
+**Podemos configurar cada região com as configurações de instancias necessárias, sem necessidade da capacidade computacional ser a mesma para todas, gerando excesso de recursos**
+
+**Se necessário operações de escrita em um database que não possui Primary Instance, é necessário prover um VPC Tunnel de modo a possiblitar o acesso à Primary Instance**
+
+![](aurora-images/Pasted-image-12.png)
+
+**Uma forma mais segura e menos propensa a erros é o uso de --enable-global-write-forwarding**, no entanto, isso leva a impactos negativos como:
++ **Aumento de latência na disponibilidade** uma vez que é necessário finalizar a operação no Primary Database para então ser aplicado no Secondary Database
+
+## Global Endpoints
+Cada região tem seu endpoint unico criado pelo Amazon Route 53
+
+**Para operar de modo global é mandatório termos configurações de switch over e fail over nos endpoints**
+
+Usando **describe-global-cluster podemos gerar um DNS único** nesse modelo temos como vantagem a independência do Amazon Route 53 para gerenciamento dos endpoints, usando-o somente para roteamento
+
+**A Primary Database é a qual recebe o tráfego do endpoint por padrão mas em situações de switch over e fail over a Secondary Database é quem o recebe**
+
+# Amazon Aurora Serverless V2
