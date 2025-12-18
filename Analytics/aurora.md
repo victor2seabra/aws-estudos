@@ -36,7 +36,7 @@ Se responsabiliza por:
 
 ## Características
 + **Até 15 replicas de leitura por cluster** com baixa latência
-+ Armazenamento escala de modo automático de 10 GB ate 128 TB
++ Armazenamento escala de modo automático de 10 GB ate 128 TB em não-serverless e 256 TB em serverless
 + Se recupera sozinho de falhas de hardware
 + Dados são criptografados no tráfego e no rest se integrado com AWS KMS
 + Fornece a API do Amazon RDS para uma interface segura
@@ -175,6 +175,11 @@ Devemos nos atentar a:
 + Opções de point-in-time recovery
 + Habilidade de criação de replicas de leitura para melhorar a escalabilidade e recuperação de desastres
 
+### Dimensionamento de Instâncias
+Se usado Performance Insights: Mínimo de 2 ACU
+
+Se usado modo Global: Mínimo de 8 ACU
+
 ## Integração
 ### AWS Lambda
 Podemos invocar eventos que realizam a execução de procedures e triggers
@@ -222,11 +227,27 @@ Os WALs são constantemente transmitidos via streaming para:
 + Nodes de armazenamento usando paralelismo 
 + Secondary Instance pelo Primary Instance permitindo o uso de cache, denominado de Page Cache Update
 
+**buffer pools e pages são formas de gereciamento de memória**
+
+**buffer pool: se trata do cache do Secondary Instance, evitando fazer queries no Cluster Volume, reduzindo a latência. Compõe cerca de 75% da RAM das Secondary Instances. Regido pelo shared_buffers**
+
+**pages: é a forma como que os dados são lidos ou gravados, possuindo por padrão 8 KB mas geralmente são configuradas para 16 KB. Sempre que a consulta precisa de dados uma ou mais páginas inteiras são retornadas**
+
+**Hit Ratio: métrica que mostra a porcentagem de vezes que o dado foi achado no Buffer Pool sem precisar ir ao disco**
+
+**Se o seu Buffer Pool Cache Hit Ratio estiver abaixo de 95-99%, isso geralmente é um sinal de que você precisa de uma instância com mais memória RAM para acomodar seu volume de dados ativos**
+
 Os WALs passados para os Secondary Instances são usados para buffer pool e updates de leitura de views
 
 ![](aurora-images/Pasted-image-6.png)
 
 ![](aurora-images/Pasted-image-7.png)
+
+## Parâmetros de Configuração e Observabilidade
+
+![](aurora-images/Pasted-image-14.png)
+
+![](aurora-images/Pasted-image-15.png)
 
 # Amazon Aurora Global Database
 Permite a criação de vários databases em diferentes regiões, aumentando a sua disponibilidade e reduzindo latência em consultas
@@ -266,3 +287,26 @@ Usando **describe-global-cluster podemos gerar um DNS único** nesse modelo temo
 **A Primary Database é a qual recebe o tráfego do endpoint por padrão mas em situações de switch over e fail over a Secondary Database é quem o recebe**
 
 # Amazon Aurora Serverless V2
+Podemos usar em um Secondary Database no modo global e em ambientes de desenvolvimento e testes, captando métricas para depois implementarmos o modo gerenciado
+
+**Recomendado seu uso em situações onde o tráfego varia muito e é imprevisível**
+
+**A capacidade computacional é medida em Aurora Computing Units (ACU)**
+
+**1 ACU = 2GB RAM + 2GB CPU + 2GB rede**
+
+Mínimo ACU: 0.5
+
+Máximo ACU: 256
+
+**Quando setado para 0 ACU é o estado definido como auto-pause. Ideal para redução de custos em ambiente que não o de produção** 
+
+Aqui os buffer pools são ajustados automaticamente via **algoritmos de Least Frequent Accessed (LFA) e Least Recently Used (LCU)**
+
+No modelo Serverless se nosso Tier 0 Cluster no Cluster Endpoint escala verticalmente, nosso subsequente Tier também o realiza para em situações de fail over não gerar complicações
+
+Se há aumento de uma Instance em um Custom Endpoint, todos as Instances nesse endpoint irão escalar
+
+Podemos mesclar tipos de Aurora para atingirmos nossas metas
+
+![](aurora-images/Pasted-image-13.png)
