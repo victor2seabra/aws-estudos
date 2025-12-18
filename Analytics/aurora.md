@@ -26,7 +26,7 @@ Se responsabiliza por:
 + Plataformas de e-commerce
 + Sistemas de gerenciamento de conteúdo
 
-**Possui uma engine de armazenamento de logs estruturados que aumenta sua performance** se comparado a engines tradicionais de databases
+**Possui uma engine de armazenamento de logs estruturados (WAL - discutido mais a frente) que aumenta sua performance** se comparado a engines tradicionais de databases
 
 ## Benefícios de Uso 
 + Elimina a necessidade de gerenciarmos a infraestrutura do database 
@@ -65,7 +65,7 @@ Lida com todas as **operações de escrita e lê requests** feitos ao cluster do
 
 Podemos ter somente **um por cluster**
 
-As instancias de escrita (Primary Instances) atuam escrevendo Logs estruturados no armazenamento no modelo Write-Ahead Log (WAL)
+A instancia de escrita (Primary Instances) atua escrevendo Logs estruturados no armazenamento no modelo Write-Ahead Log (WAL)
 
 #### Secondary (Reader) Instance
 Performa **operações de leitura** de modo escalável
@@ -73,6 +73,12 @@ Performa **operações de leitura** de modo escalável
 Cada leitura realiza a operação sobre uma página (page) sob demanda que é materializada no background do Amazon Aurora
 
 Podemos ter **até 15 replicas** dessa instância para otimizar a performance
+
+**Qualquer Secondary Instance pode ser promovida para Primary Instance em situações de quebra/colapso do Primary Instance**
+
+A determinação de qual Secondary Instance irá atuar como Primary Instance depende do **Failover Tier**, um valor númerico que dita a preferência por esse comportamento. **Quanto mais baixo o valor, maior a prioridade**
+
+**Primary Instances serão substituídas por novas Secondary Instances**
 
 #### Cluster Volume
 Se trata do **armazenamento virtual** da databases
@@ -99,6 +105,12 @@ Realiza o backup de modo contínuo, e sem afetar a performance, dos WAL e pages
 
 Podemos ter no máximo 6 cópias de dados para aumentar a durabilidade
 
+Podemos criar clones dos nossos databases para, por exemplo, testes
+
+O processo de **copy-on-write** somente ocorre em situações em que os Cluster Volumes originais e clones diferem entre si, **em situações como essa o armazenamento é cobrado**
+
+**Amazon Aurora realiza a criação de snapshots e reorganiza a database**
+
 ### Endpoints
 Se tratam de pontos de conexão de nosso cluster 
 
@@ -124,6 +136,10 @@ Abordagem de verificar a consistencia ao longo de multiplas copias do database
 
 Requer de um "acordo" com a maioria dos nodes de armazenamento que contem os Cluster Volumes
 
+A escrita exige reconhecimento de pelo menos 4 de 6 cópias, garantindo forte consistência
+
+Para leitura 3 cópias dos WALs durante recovery são necessárias
+
 ### Aurora Serverless
 Opera de modo Serverless dessa forma não precisamos nos preocupar com dimensionamento de recursos
 
@@ -144,7 +160,7 @@ Devemos monitorar suas métricas e Logs para termos uma visibilidade ampla de co
 ### Gerenciamento Operacional
 Devemos nos atentar a:
 + Entender o backup automatico e features de recovery
-+ Opções de oint-in-time recovery
++ Opções de point-in-time recovery
 + Habilidade de criação de replicas de leitura para melhorar a escalabilidade e recuperação de desastres
 
 ## Integração
@@ -197,3 +213,5 @@ Os WALs são constantemente transmitidos via streaming para:
 Os WALs passados para os Secondary Instances são usados para buffer pool e updates de leitura de views
 
 ![](aurora-images/Pasted-image-6.png)
+
+![](aurora-images/Pasted-image-7.png)
